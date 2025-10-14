@@ -1,8 +1,9 @@
 import * as fs from "fs";
 import { DOMParser } from "xmldom";
 import * as xpath from "xpath";
-import execa from "execa";
 import { execSync } from "child_process";
+
+const execa = require("execa");
 import * as os from "os";
 import * as _ from "lodash";
 import * as rimraf from "rimraf";
@@ -52,28 +53,28 @@ export interface VariableSetOptions extends Array<VSOption> {}
  */
 export class PitStopServer {
   static applicationPath: string;
-  private configFile: string;
+  private configFile: string | undefined;
   private configFileName: string;
   private finalConfigFilePath: string;
-  private inputPDF: string;
-  private outputPDFName: string;
-  private outputFolder: string;
-  private preflightProfile: string;
-  private actionLists: string[];
-  private variableSet: string;
-  private variableSetName: string;
-  private finalVariableSetPath: string;
-  private pdfReport: boolean;
-  private pdfReportName: string;
-  private xmlReport: boolean;
-  private xmlReportName: string;
-  private taskReport: boolean;
-  private taskReportName: string;
+  private inputPDF: string | undefined;
+  private outputPDFName: string | undefined;
+  private outputFolder: string | undefined;
+  private preflightProfile: string | undefined;
+  private actionLists: string[] | undefined;
+  private variableSet: string | undefined;
+  private variableSetName: string | undefined;
+  private finalVariableSetPath: string | undefined;
+  private pdfReport: boolean | undefined;
+  private pdfReportName: string | undefined;
+  private xmlReport: boolean | undefined;
+  private xmlReportName: string | undefined;
+  private taskReport: boolean | undefined;
+  private taskReportName: string | undefined;
   public debugMessages: string[];
   private measurementUnit?: "Millimeter" | "Centimeter" | "Inch" | "Point";
   private language?: string;
-  private startExecutionTime: number;
-  private endExecutionTime: number;
+  private startExecutionTime: number | undefined;
+  private endExecutionTime: number | undefined;
   public executionTime: number;
 
   //////////////////////////////////////////////////////////////////////////
@@ -105,8 +106,9 @@ export class PitStopServer {
     this.executionTime = 0;
 
     //initialize the instance variables with the values of the options
-    for (let option in options) {
-      this.debugMessages.push("Received option " + option + " = " + options[option]);
+    for (const option in options) {
+      const key = option as keyof PitStopServerOptions;
+      this.debugMessages.push("Received option " + option + " = " + options[key]);
       switch (option) {
         case "inputPDF":
           this.inputPDF = options.inputPDF;
@@ -165,21 +167,21 @@ export class PitStopServer {
 
     //set default values that are based on the input PDF name
     if (this.outputPDFName == undefined) {
-      this.outputPDFName = path.parse(this.inputPDF).name + ".pdf";
+      this.outputPDFName = path.parse(this.inputPDF!).name + ".pdf";
     }
     if (this.pdfReportName == undefined) {
-      this.pdfReportName = path.parse(this.inputPDF).name + "_report.pdf";
+      this.pdfReportName = path.parse(this.inputPDF!).name + "_report.pdf";
     }
     if (this.xmlReportName == undefined) {
-      this.xmlReportName = path.parse(this.inputPDF).name + ".xml";
+      this.xmlReportName = path.parse(this.inputPDF!).name + ".xml";
     }
 
     //check if the output folder exists and is writable
-    if (fs.existsSync(this.outputFolder) == false) {
+    if (fs.existsSync(this.outputFolder!) == false) {
       throw new Error("The output folder " + options.outputFolder + " does not exist");
     } else {
       try {
-        fs.accessSync(this.outputFolder, fs.constants.W_OK);
+        fs.accessSync(this.outputFolder!, fs.constants.W_OK);
       } catch (error) {
         throw new Error("The output folder " + options.outputFolder + " is not writable");
       }
@@ -205,7 +207,7 @@ export class PitStopServer {
       this.createBasicConfigFile();
     } else {
       this.debugMessages.push("Using template configuration file " + options.configFile);
-      if (fs.existsSync(this.configFile) == false) {
+      if (!this.configFile || fs.existsSync(this.configFile) == false) {
         throw new Error("The configuration file " + this.configFile + " does not exist");
       } else {
         fs.copyFileSync(this.configFile, this.finalConfigFilePath);
@@ -244,7 +246,16 @@ export class PitStopServer {
     } catch (error) {
       this.endExecutionTime = new Date().getTime();
       this.executionTime = this.endExecutionTime - this.startExecutionTime;
-      return { command: error.command, exitCode: error.exitCode, stdout: error.stdout, stderr: error.message };
+      if (typeof error === 'object' && error !== null && 'command' in error && 'exitCode' in error && 'stdout' in error && 'message' in error) {
+        return {
+          command: (error as any).command,
+          exitCode: (error as any).exitCode,
+          stdout: (error as any).stdout,
+          stderr: (error as any).message
+        };
+      } else {
+        return { command: '', exitCode: -1, stdout: '', stderr: String(error) };
+      }
     }
   };
 
@@ -415,7 +426,7 @@ export class PitStopServer {
    */
   public cleanup = () => {
     try {
-      rimraf.sync(this.outputFolder);
+      rimraf.sync(this.outputFolder!);
     } catch (error) {
       throw error;
     }
@@ -557,7 +568,7 @@ export class PitStopServer {
       let processNode = select("//cf:Process", xml);
       //add the variable set
       if (typeof this.variableSet == "string") {
-        if (fs.existsSync(this.finalVariableSetPath) == false) {
+        if (fs.existsSync(this.finalVariableSetPath!) == false) {
           throw new Error("The Variable Set " + this.finalVariableSetPath + " does not exist");
         }
         this.finalVariableSetPath = this.outputFolder + "/" + this.variableSetName;

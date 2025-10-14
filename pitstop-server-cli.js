@@ -40,8 +40,8 @@ exports.PitStopServer = void 0;
 var fs = require("fs");
 var xmldom_1 = require("xmldom");
 var xpath = require("xpath");
-var execa = require("execa");
 var child_process_1 = require("child_process");
+var execa = require("execa");
 var os = require("os");
 var rimraf = require("rimraf");
 var jstoxml_1 = require("jstoxml");
@@ -100,7 +100,18 @@ var PitStopServer = /** @class */ (function () {
                         error_1 = _b.sent();
                         this.endExecutionTime = new Date().getTime();
                         this.executionTime = this.endExecutionTime - this.startExecutionTime;
-                        return [2 /*return*/, { command: error_1.command, exitCode: error_1.exitCode, stdout: error_1.stdout, stderr: error_1.message }];
+                        if (typeof error_1 === 'object' && error_1 !== null && 'command' in error_1 && 'exitCode' in error_1 && 'stdout' in error_1 && 'message' in error_1) {
+                            return [2 /*return*/, {
+                                    command: error_1.command,
+                                    exitCode: error_1.exitCode,
+                                    stdout: error_1.stdout,
+                                    stderr: error_1.message
+                                }];
+                        }
+                        else {
+                            return [2 /*return*/, { command: '', exitCode: -1, stdout: '', stderr: String(error_1) }];
+                        }
+                        return [3 /*break*/, 4];
                     case 4: return [2 /*return*/];
                 }
             });
@@ -490,7 +501,8 @@ var PitStopServer = /** @class */ (function () {
         this.executionTime = 0;
         //initialize the instance variables with the values of the options
         for (var option in options) {
-            this.debugMessages.push("Received option " + option + " = " + options[option]);
+            var key = option;
+            this.debugMessages.push("Received option " + option + " = " + options[key]);
             switch (option) {
                 case "inputPDF":
                     this.inputPDF = options.inputPDF;
@@ -590,7 +602,7 @@ var PitStopServer = /** @class */ (function () {
         }
         else {
             this.debugMessages.push("Using template configuration file " + options.configFile);
-            if (fs.existsSync(this.configFile) == false) {
+            if (!this.configFile || fs.existsSync(this.configFile) == false) {
                 throw new Error("The configuration file " + this.configFile + " does not exist");
             }
             else {
