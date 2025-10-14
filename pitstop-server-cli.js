@@ -38,10 +38,10 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.PitStopServer = void 0;
 var fs = require("fs");
-var xmldom_1 = require("xmldom");
+var xmldom_1 = require("@xmldom/xmldom");
 var xpath = require("xpath");
 var child_process_1 = require("child_process");
-var execa = require("execa");
+var execa_1 = require("execa");
 var os = require("os");
 var rimraf = require("rimraf");
 var jstoxml_1 = require("jstoxml");
@@ -89,7 +89,7 @@ var PitStopServer = /** @class */ (function () {
                         _b.label = 1;
                     case 1:
                         _b.trys.push([1, 3, , 4]);
-                        return [4 /*yield*/, execa(_a.applicationPath, ["-config", this.finalConfigFilePath])];
+                        return [4 /*yield*/, (0, execa_1.execa)(_a.applicationPath, ["-config", this.finalConfigFilePath])];
                     case 2:
                         execResult = _b.sent();
                         this.debugMessages.push("PitStop Server ended at " + new Date().toISOString());
@@ -209,7 +209,6 @@ var PitStopServer = /** @class */ (function () {
             try {
                 var evsContent = fs.readFileSync(_this.finalVariableSetPath).toString();
                 var parser = new xmldom_1.DOMParser({
-                    locator: {},
                     errorHandler: {
                         warning: function (msg) {
                             //ignore
@@ -222,7 +221,7 @@ var PitStopServer = /** @class */ (function () {
                         },
                     },
                 });
-                evs = parser.parseFromString(evsContent);
+                evs = parser.parseFromString(evsContent, "text/xml");
             }
             catch (error) {
                 throw error;
@@ -239,16 +238,18 @@ var PitStopServer = /** @class */ (function () {
             var unitNodeParent, unitNodeText;
             for (var i = 0; i < values.length; i++) {
                 xpExpression = "/evs:VariableSet/evs:Variables/evs:Variable[evs:Name='" + values[i].variable + "']/evs:OperatorID";
-                operatorID = select("string(" + xpExpression + ")", evs).toString();
+                var operatorIDResult = select("string(" + xpExpression + ")", evs);
+                operatorID = operatorIDResult ? operatorIDResult.toString() : '';
                 if (operatorID == "") {
                     throw new Error("The variable " + values[i].variable + " is not present in the variable set " + _this.variableSet);
                 }
                 xpExpression = "/evs:VariableSet/evs:Variables/evs:Variable[evs:Name='" + values[i].variable + "']/evs:ResultType";
-                resultType = select("string(" + xpExpression + ")", evs).toString();
+                var resultTypeNode = select("string(" + xpExpression + ")", evs);
+                resultType = resultTypeNode != null ? resultTypeNode.toString() : '';
                 if (resultType == "Length") {
                     xpExpression = "/evs:VariableSet/evs:Variables/evs:Variable[evs:Name='" + values[i].variable + "']/evs:DefaultUnit";
                     oldUnitNode = select(xpExpression, evs);
-                    unitNodeText = evs.createText("mm");
+                    unitNodeText = evs.createTextNode("mm");
                     if (oldUnitNode == undefined) {
                         newUnitNode = evs.createElement("evs:DefaultUnit");
                         newUnitNode.appendChild(unitNodeText);
@@ -337,8 +338,16 @@ var PitStopServer = /** @class */ (function () {
                     }
                     var inputPathNode = select("//cf:InputPath", xml);
                     newText = xml.createTextNode(_this.inputPDF);
-                    //inputPathNode.appendChild(newText);
-                    inputPathNode[0].appendChild(newText);
+                    // Ensure inputPathNode is an array of Node and has at least one element
+                    if (Array.isArray(inputPathNode) &&
+                        inputPathNode.length > 0 &&
+                        xml.defaultView !== null &&
+                        inputPathNode[0] instanceof xml.defaultView.Node) {
+                        inputPathNode[0].appendChild(newText);
+                    }
+                    else {
+                        throw new Error('Could not find <cf:InputPath> node in the configuration XML.');
+                    }
                     inputFileName = path.parse(_this.inputPDF).name;
                 }
                 if (typeof _this.outputFolder == "string") {
@@ -347,7 +356,15 @@ var PitStopServer = /** @class */ (function () {
                     }
                     var outputPathNode = select("//cf:OutputPath", xml);
                     newText = xml.createTextNode(_this.outputFolder + "/" + _this.outputPDFName);
-                    outputPathNode[0].appendChild(newText);
+                    if (Array.isArray(outputPathNode) &&
+                        outputPathNode.length > 0 &&
+                        xml.defaultView !== null &&
+                        outputPathNode[0] instanceof xml.defaultView.Node) {
+                        outputPathNode[0].appendChild(newText);
+                    }
+                    else {
+                        throw new Error('Could not find <cf:OutputPath> node in the configuration XML.');
+                    }
                 }
                 var mutatorsNode = select("//cf:Mutators", xml);
                 //add the preflight profile
@@ -360,7 +377,15 @@ var PitStopServer = /** @class */ (function () {
                     newElem = xml.createElement("cf:PreflightProfile");
                     newText = xml.createTextNode(_this.preflightProfile);
                     newElem.appendChild(newText);
-                    mutatorsNode.appendChild(newElem);
+                    if (Array.isArray(mutatorsNode) &&
+                        mutatorsNode.length > 0 &&
+                        xml.defaultView !== null &&
+                        mutatorsNode[0] instanceof xml.defaultView.Node) {
+                        mutatorsNode[0].appendChild(newElem);
+                    }
+                    else {
+                        throw new Error('Could not find <cf:Mutators> node in the configuration XML.');
+                    }
                 }
                 //add the action lists
                 if (_this.actionLists !== undefined && _this.actionLists.constructor == Array) {
@@ -372,7 +397,15 @@ var PitStopServer = /** @class */ (function () {
                         newElem = xml.createElement("cf:ActionList");
                         newText = xml.createTextNode(_this.actionLists[i]);
                         newElem.appendChild(newText);
-                        mutatorsNode[0].appendChild(newElem);
+                        if (Array.isArray(mutatorsNode) &&
+                            mutatorsNode.length > 0 &&
+                            xml.defaultView !== null &&
+                            mutatorsNode[0] instanceof xml.defaultView.Node) {
+                            mutatorsNode[0].appendChild(newElem);
+                        }
+                        else {
+                            throw new Error('Could not find <cf:Mutators> node in the configuration XML.');
+                        }
                     }
                 }
                 //add the reports
@@ -380,7 +413,15 @@ var PitStopServer = /** @class */ (function () {
                     _this.debugMessages.push("Defining an XML report");
                     var reportsNode = select("//cf:Reports", xml);
                     var newElemReportXML = xml.createElement("cf:ReportXML");
-                    reportsNode[0].appendChild(newElemReportXML);
+                    if (Array.isArray(reportsNode) &&
+                        reportsNode.length > 0 &&
+                        xml.defaultView !== null &&
+                        reportsNode[0] instanceof xml.defaultView.Node) {
+                        reportsNode[0].appendChild(newElemReportXML);
+                    }
+                    else {
+                        throw new Error('Could not find <cf:Reports> node in the configuration XML.');
+                    }
                     var newElemReportPath = xml.createElement("cf:ReportPath");
                     var newReportPathText = xml.createTextNode(_this.outputFolder + "/" + _this.xmlReportName);
                     newElemReportPath.appendChild(newReportPathText);
@@ -402,7 +443,15 @@ var PitStopServer = /** @class */ (function () {
                     _this.debugMessages.push("Defining a PDF report");
                     var reportsNode = select("//cf:Reports", xml);
                     var newElemReportPDF = xml.createElement("cf:ReportPDF");
-                    reportsNode[0].appendChild(newElemReportPDF);
+                    if (Array.isArray(reportsNode) &&
+                        reportsNode.length > 0 &&
+                        xml.defaultView !== null &&
+                        reportsNode[0] instanceof xml.defaultView.Node) {
+                        reportsNode[0].appendChild(newElemReportPDF);
+                    }
+                    else {
+                        throw new Error('Could not find <cf:Reports> node in the configuration XML.');
+                    }
                     var newElemReportPath = xml.createElement("cf:ReportPath");
                     var newReportPathText = xml.createTextNode(_this.outputFolder + "/" + _this.pdfReportName);
                     newElemReportPath.appendChild(newReportPathText);
@@ -412,7 +461,15 @@ var PitStopServer = /** @class */ (function () {
                     _this.debugMessages.push("Defining a task report");
                     var taskReportNode = select("//cf:TaskReport", xml);
                     var newElemTaskReport = xml.createElement("cf:TaskReportPath");
-                    taskReportNode[0].appendChild(newElemTaskReport);
+                    if (Array.isArray(taskReportNode) &&
+                        taskReportNode.length > 0 &&
+                        xml.defaultView !== null &&
+                        taskReportNode[0] instanceof xml.defaultView.Node) {
+                        taskReportNode[0].appendChild(newElemTaskReport);
+                    }
+                    else {
+                        throw new Error('Could not find <cf:TaskReport> node in the configuration XML.');
+                    }
                     var newReportPathText = xml.createTextNode(_this.outputFolder + "/" + _this.taskReportName);
                     newElemTaskReport.appendChild(newReportPathText);
                 }
@@ -428,11 +485,22 @@ var PitStopServer = /** @class */ (function () {
                         fs.copyFileSync(_this.variableSet, _this.finalVariableSetPath);
                     }
                     _this.debugMessages.push("Adding the variable set " + _this.finalVariableSetPath);
+                    if (!Array.isArray(processNode) ||
+                        processNode.length === 0 ||
+                        xml.defaultView === null ||
+                        !(processNode[0] instanceof xml.defaultView.Node)) {
+                        throw new Error('Could not find <cf:Process> node in the configuration XML.');
+                    }
                     var variableSetNode = select("cf:SmartPreflight/cf:VariableSet", processNode[0]);
-                    if (variableSetNode.length !== 0) {
+                    if (Array.isArray(variableSetNode) &&
+                        variableSetNode.length !== 0 &&
+                        xml.defaultView !== null &&
+                        variableSetNode[0] instanceof xml.defaultView.Node) {
                         var oldValue = select("//cf:Process/cf:SmartPreflight/cf:VariableSet", xml);
                         var newValue = xml.createTextNode(_this.finalVariableSetPath);
-                        variableSetNode[0].replaceChild(newValue, oldValue);
+                        if (Array.isArray(oldValue) && oldValue.length > 0 && oldValue[0] instanceof xml.defaultView.Node) {
+                            variableSetNode[0].replaceChild(newValue, oldValue[0]);
+                        }
                     }
                     else {
                         var newElemSmartPreflight = xml.createElement("cf:SmartPreflight");
@@ -445,21 +513,35 @@ var PitStopServer = /** @class */ (function () {
                 }
                 //add the measurement units
                 var measurementUnitNode = select("//cf:MeasurementUnit", xml);
-                if (measurementUnitNode.length == 0) {
+                if (!Array.isArray(measurementUnitNode) ||
+                    measurementUnitNode.length === 0) {
                     _this.debugMessages.push("The configuration file does not contain a node for the measurement unit. The default will be used.");
                 }
                 else {
                     var measurementUnitText = xml.createTextNode(_this.measurementUnit);
-                    measurementUnitNode[0].appendChild(measurementUnitText);
+                    if (xml.defaultView !== null &&
+                        measurementUnitNode[0] instanceof xml.defaultView.Node) {
+                        measurementUnitNode[0].appendChild(measurementUnitText);
+                    }
+                    else {
+                        throw new Error('Could not find valid <cf:MeasurementUnit> node in the configuration XML.');
+                    }
                 }
                 //add the language
                 var languageNode = select("//cf:Language", xml);
-                if (languageNode.length == 0) {
+                if (!Array.isArray(languageNode) ||
+                    languageNode.length === 0) {
                     _this.debugMessages.push("The configuration file does not contain a node for the language. The default will be used.");
                 }
                 else {
                     var languageText = xml.createTextNode(_this.language);
-                    languageNode[0].appendChild(languageText);
+                    if (xml.defaultView !== null &&
+                        languageNode[0] instanceof xml.defaultView.Node) {
+                        languageNode[0].appendChild(languageText);
+                    }
+                    else {
+                        throw new Error('Could not find valid <cf:Language> node in the configuration XML.');
+                    }
                 }
                 //save the modified config file to the output folder
                 _this.debugMessages.push("Saving the final configuration file " + _this.finalConfigFilePath);
@@ -638,7 +720,7 @@ var PitStopServer = /** @class */ (function () {
                     _b.label = 1;
                 case 1:
                     _b.trys.push([1, 3, , 4]);
-                    return [4 /*yield*/, execa(_a.applicationPath, ["-version"])];
+                    return [4 /*yield*/, (0, execa_1.execa)(_a.applicationPath, ["-version"])];
                 case 2:
                     execResult = _b.sent();
                     return [2 /*return*/, execResult.stdout];

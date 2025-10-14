@@ -21,18 +21,17 @@
   "license": "ISC",
   "dependencies": {
     "@xmldom/xmldom": "^0.8.11",
-    "execa": "^4.0.3",
-    "jstoxml": "^2.0.3",
+    "execa": "^9.6.0",
+    "jstoxml": "^7.0.1",
     "lodash": "^4.17.21",
-    "rimraf": "^3.0.2",
-    "xpath": "0.0.29"
+    "rimraf": "^6.0.1",
+    "xpath": "^0.0.34"
   },
   "devDependencies": {
-    "@types/jstoxml": "^2.0.0",
-    "@types/lodash": "^4.14.167",
-    "@types/node": "^14.14.20",
-    "@types/rimraf": "^3.0.0",
-    "@types/tmp": "^0.2.0",
-    "@types/xmldom": "^0.1.30"
+    "@types/jstoxml": "^2.0.4",
+    "@types/lodash": "^4.17.20",
+    "@types/node": "^22.10.10",
+    "@types/rimraf": "^3.0.2",
+    "@types/tmp": "^0.2.6"
   }
 }

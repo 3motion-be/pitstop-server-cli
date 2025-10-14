@@ -3,7 +3,19 @@ import { DOMParser } from "@xmldom/xmldom";
 import * as xpath from "xpath";
 import { execSync } from "child_process";
 
-const execa = require("execa");
+import {
+	execa,
+	ExecaError,
+	type ResultPromise,
+	type Result,
+	type Options,
+	type StdinOption,
+	type StdoutStderrOption,
+	type TemplateExpression,
+	type Message,
+	type VerboseObject,
+	type ExecaMethod,
+} from 'execa';
 import * as os from "os";
 import * as _ from "lodash";
 import * as rimraf from "rimraf";
@@ -354,7 +366,6 @@ export class PitStopServer {
     try {
       let evsContent = fs.readFileSync(this.finalVariableSetPath).toString();
       let parser = new DOMParser({
-        locator: {},
         errorHandler: {
           warning: (msg) => {
             //ignore
@@ -367,7 +378,7 @@ export class PitStopServer {
           },
         },
       });
-      evs = parser.parseFromString(evsContent);
+      evs = parser.parseFromString(evsContent, "text/xml");
     } catch (error) {
       throw error;
     }
@@ -384,16 +395,18 @@ export class PitStopServer {
     let unitNodeParent: any, unitNodeText: Text;
     for (let i = 0; i < values.length; i++) {
       xpExpression = "/evs:VariableSet/evs:Variables/evs:Variable[evs:Name='" + values[i].variable + "']/evs:OperatorID";
-      operatorID = select("string(" + xpExpression + ")", evs).toString();
+      const operatorIDResult = select("string(" + xpExpression + ")", evs);
+      operatorID = operatorIDResult ? operatorIDResult.toString() : '';
       if (operatorID == "") {
         throw new Error("The variable " + values[i].variable + " is not present in the variable set " + this.variableSet);
       }
       xpExpression = "/evs:VariableSet/evs:Variables/evs:Variable[evs:Name='" + values[i].variable + "']/evs:ResultType";
-      resultType = select("string(" + xpExpression + ")", evs).toString();
+      const resultTypeNode = select("string(" + xpExpression + ")", evs);
+      resultType = resultTypeNode != null ? resultTypeNode.toString() : '';
       if (resultType == "Length") {
         xpExpression = "/evs:VariableSet/evs:Variables/evs:Variable[evs:Name='" + values[i].variable + "']/evs:DefaultUnit";
         oldUnitNode = select(xpExpression, evs);
-        unitNodeText = evs.createText("mm");
+        unitNodeText = evs.createTextNode("mm");
         if (oldUnitNode == undefined) {
           newUnitNode = evs.createElement("evs:DefaultUnit");
           newUnitNode.appendChild(unitNodeText);
@@ -481,8 +494,17 @@ export class PitStopServer {
         }
         let inputPathNode = select("//cf:InputPath", xml);
         newText = xml.createTextNode(this.inputPDF);
-        //inputPathNode.appendChild(newText);
-        (inputPathNode[0] as any).appendChild(newText);
+        // Ensure inputPathNode is an array of Node and has at least one element
+        if (
+            Array.isArray(inputPathNode) &&
+            inputPathNode.length > 0 &&
+            xml.defaultView !== null &&
+            inputPathNode[0] instanceof xml.defaultView.Node
+        ) {
+            (inputPathNode[0] as Node).appendChild(newText);
+        } else {
+            throw new Error('Could not find <cf:InputPath> node in the configuration XML.');
+        }
         inputFileName = path.parse(this.inputPDF).name;
       }
 
@@ -492,7 +514,16 @@ export class PitStopServer {
         }
         let outputPathNode = select("//cf:OutputPath", xml);
         newText = xml.createTextNode(this.outputFolder + "/" + this.outputPDFName);
-        (outputPathNode[0] as any).appendChild(newText);
+        if (
+            Array.isArray(outputPathNode) &&
+            outputPathNode.length > 0 &&
+            xml.defaultView !== null &&
+            outputPathNode[0] instanceof xml.defaultView.Node
+        ) {
+            (outputPathNode[0] as Node).appendChild(newText);
+        } else {
+            throw new Error('Could not find <cf:OutputPath> node in the configuration XML.');
+        }
       }
 
       let mutatorsNode = select("//cf:Mutators", xml);
@@ -506,7 +537,16 @@ export class PitStopServer {
         newElem = xml.createElement("cf:PreflightProfile");
         newText = xml.createTextNode(this.preflightProfile);
         newElem.appendChild(newText);
-        (mutatorsNode as any).appendChild(newElem);
+        if (
+            Array.isArray(mutatorsNode) &&
+            mutatorsNode.length > 0 &&
+            xml.defaultView !== null &&
+            mutatorsNode[0] instanceof xml.defaultView.Node
+        ) {
+            (mutatorsNode[0] as Node).appendChild(newElem);
+        } else {
+            throw new Error('Could not find <cf:Mutators> node in the configuration XML.');
+        }
       }
 
       //add the action lists
@@ -519,7 +559,16 @@ export class PitStopServer {
           newElem = xml.createElement("cf:ActionList");
           newText = xml.createTextNode(this.actionLists[i]);
           newElem.appendChild(newText);
-          (mutatorsNode[0] as any).appendChild(newElem);
+          if (
+              Array.isArray(mutatorsNode) &&
+              mutatorsNode.length > 0 &&
+              xml.defaultView !== null &&
+              mutatorsNode[0] instanceof xml.defaultView.Node
+          ) {
+              (mutatorsNode[0] as Node).appendChild(newElem);
+          } else {
+              throw new Error('Could not find <cf:Mutators> node in the configuration XML.');
+          }
         }
       }
 
@@ -528,7 +577,16 @@ export class PitStopServer {
         this.debugMessages.push("Defining an XML report");
         let reportsNode = select("//cf:Reports", xml);
         let newElemReportXML = xml.createElement("cf:ReportXML");
-        (reportsNode[0] as any).appendChild(newElemReportXML);
+        if (
+            Array.isArray(reportsNode) &&
+            reportsNode.length > 0 &&
+            xml.defaultView !== null &&
+            reportsNode[0] instanceof xml.defaultView.Node
+        ) {
+            (reportsNode[0] as Node).appendChild(newElemReportXML);
+        } else {
+            throw new Error('Could not find <cf:Reports> node in the configuration XML.');
+        }
         let newElemReportPath = xml.createElement("cf:ReportPath");
         let newReportPathText = xml.createTextNode(this.outputFolder + "/" + this.xmlReportName);
         newElemReportPath.appendChild(newReportPathText);
@@ -550,7 +608,16 @@ export class PitStopServer {
         this.debugMessages.push("Defining a PDF report");
         let reportsNode = select("//cf:Reports", xml);
         let newElemReportPDF = xml.createElement("cf:ReportPDF");
-        (reportsNode[0] as any).appendChild(newElemReportPDF);
+        if (
+            Array.isArray(reportsNode) &&
+            reportsNode.length > 0 &&
+            xml.defaultView !== null &&
+            reportsNode[0] instanceof xml.defaultView.Node
+        ) {
+            (reportsNode[0] as Node).appendChild(newElemReportPDF);
+        } else {
+            throw new Error('Could not find <cf:Reports> node in the configuration XML.');
+        }
         let newElemReportPath = xml.createElement("cf:ReportPath");
         let newReportPathText = xml.createTextNode(this.outputFolder + "/" + this.pdfReportName);
         newElemReportPath.appendChild(newReportPathText);
@@ -560,7 +627,16 @@ export class PitStopServer {
         this.debugMessages.push("Defining a task report");
         let taskReportNode = select("//cf:TaskReport", xml);
         let newElemTaskReport = xml.createElement("cf:TaskReportPath");
-        (taskReportNode[0] as any).appendChild(newElemTaskReport);
+        if (
+            Array.isArray(taskReportNode) &&
+            taskReportNode.length > 0 &&
+            xml.defaultView !== null &&
+            taskReportNode[0] instanceof xml.defaultView.Node
+        ) {
+            (taskReportNode[0] as Node).appendChild(newElemTaskReport);
+        } else {
+            throw new Error('Could not find <cf:TaskReport> node in the configuration XML.');
+        }
         let newReportPathText = xml.createTextNode(this.outputFolder + "/" + this.taskReportName);
         newElemTaskReport.appendChild(newReportPathText);
       }
@@ -577,14 +653,31 @@ export class PitStopServer {
           fs.copyFileSync(this.variableSet, this.finalVariableSetPath);
         }
         this.debugMessages.push("Adding the variable set " + this.finalVariableSetPath);
+        
+        if (
+            !Array.isArray(processNode) ||
+            processNode.length === 0 ||
+            xml.defaultView === null ||
+            !(processNode[0] instanceof xml.defaultView.Node)
+        ) {
+            throw new Error('Could not find <cf:Process> node in the configuration XML.');
+        }
+        
         let variableSetNode = select("cf:SmartPreflight/cf:VariableSet", processNode[0] as any);
-        if (variableSetNode.length !== 0) {
+        if (
+            Array.isArray(variableSetNode) &&
+            variableSetNode.length !== 0 &&
+            xml.defaultView !== null &&
+            variableSetNode[0] instanceof xml.defaultView.Node
+        ) {
           let oldValue = select("//cf:Process/cf:SmartPreflight/cf:VariableSet", xml);
           let newValue = xml.createTextNode(this.finalVariableSetPath);
-          (variableSetNode[0] as any).replaceChild(newValue, oldValue);
+          if (Array.isArray(oldValue) && oldValue.length > 0 && oldValue[0] instanceof xml.defaultView.Node) {
+            (variableSetNode[0] as Node).replaceChild(newValue, oldValue[0] as Node);
+          }
         } else {
           let newElemSmartPreflight = xml.createElement("cf:SmartPreflight");
-          (processNode[0] as any).appendChild(newElemSmartPreflight);
+          (processNode[0] as Node).appendChild(newElemSmartPreflight);
           let newElemVariableSet = xml.createElement("cf:VariableSet");
           let newVariableSetText = xml.createTextNode(this.finalVariableSetPath);
           newElemVariableSet.appendChild(newVariableSetText);
@@ -594,22 +687,42 @@ export class PitStopServer {
 
       //add the measurement units
       let measurementUnitNode = select("//cf:MeasurementUnit", xml);
-      if (measurementUnitNode.length == 0) {
+      if (
+          !Array.isArray(measurementUnitNode) ||
+          measurementUnitNode.length === 0
+      ) {
         this.debugMessages.push(
           "The configuration file does not contain a node for the measurement unit. The default will be used."
         );
       } else {
         let measurementUnitText = xml.createTextNode(this.measurementUnit!);
-        (measurementUnitNode[0] as any).appendChild(measurementUnitText);
+        if (
+            xml.defaultView !== null &&
+            measurementUnitNode[0] instanceof xml.defaultView.Node
+        ) {
+            (measurementUnitNode[0] as Node).appendChild(measurementUnitText);
+        } else {
+            throw new Error('Could not find valid <cf:MeasurementUnit> node in the configuration XML.');
+        }
       }
 
       //add the language
       let languageNode = select("//cf:Language", xml);
-      if (languageNode.length == 0) {
+      if (
+          !Array.isArray(languageNode) ||
+          languageNode.length === 0
+      ) {
         this.debugMessages.push("The configuration file does not contain a node for the language. The default will be used.");
       } else {
         let languageText = xml.createTextNode(this.language!);
-        (languageNode[0] as any).appendChild(languageText);
+        if (
+            xml.defaultView !== null &&
+            languageNode[0] instanceof xml.defaultView.Node
+        ) {
+            (languageNode[0] as Node).appendChild(languageText);
+        } else {
+            throw new Error('Could not find valid <cf:Language> node in the configuration XML.');
+        }
       }
 
       //save the modified config file to the output folder
