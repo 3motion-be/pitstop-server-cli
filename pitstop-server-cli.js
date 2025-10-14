@@ -14,7 +14,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     function verb(n) { return function (v) { return step([n, v]); }; }
     function step(op) {
         if (f) throw new TypeError("Generator is already executing.");
-        while (_) try {
+        while (g && (g = 0, op[0] && (_ = 0)), _) try {
             if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
             if (y = 0, t) op = [op[0] & 2, t.value];
             switch (op[0]) {
@@ -35,13 +35,13 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-exports.__esModule = true;
+Object.defineProperty(exports, "__esModule", { value: true });
 exports.PitStopServer = void 0;
 var fs = require("fs");
 var xmldom_1 = require("xmldom");
 var xpath = require("xpath");
 var execa = require("execa");
-var registry = require("registry-js");
+var child_process_1 = require("child_process");
 var os = require("os");
 var rimraf = require("rimraf");
 var jstoxml_1 = require("jstoxml");
@@ -83,13 +83,13 @@ var PitStopServer = /** @class */ (function () {
                             throw error;
                         }
                         //the return value is an object with the execution result
-                        this.debugMessages.push("CLI path: " + PitStopServer.applicationPath);
+                        this.debugMessages.push("CLI path: " + _a.applicationPath);
                         this.debugMessages.push("PitStop Server started at " + new Date().toISOString());
                         this.startExecutionTime = new Date().getTime();
                         _b.label = 1;
                     case 1:
                         _b.trys.push([1, 3, , 4]);
-                        return [4 /*yield*/, execa(PitStopServer.applicationPath, ["-config", this.finalConfigFilePath])];
+                        return [4 /*yield*/, execa(_a.applicationPath, ["-config", this.finalConfigFilePath])];
                     case 2:
                         execResult = _b.sent();
                         this.debugMessages.push("PitStop Server ended at " + new Date().toISOString());
@@ -115,7 +115,7 @@ var PitStopServer = /** @class */ (function () {
             _this.finalVariableSetPath = _this.outputFolder + "/" + _this.variableSetName;
             var xmlOptions = {
                 header: true,
-                indent: "  "
+                indent: "  ",
             };
             var variableNode, variabletype;
             var variableNodes = [];
@@ -127,8 +127,8 @@ var PitStopServer = /** @class */ (function () {
                         ResultType: values[i].type,
                         SourceType: "com.enfocus.variabletype.inline",
                         SourceVersion: "1",
-                        OperatorID: (i + 1).toString()
-                    }
+                        OperatorID: (i + 1).toString(),
+                    },
                 };
                 variableNodes.push(variableNode);
             }
@@ -159,23 +159,23 @@ var PitStopServer = /** @class */ (function () {
                     _content: {
                         OperatorType: "com.enfocus.operator.constant",
                         GUID: (i + 1).toString(),
-                        OperatorData: { Value: values[i].value, ValueType: "String" },
-                        OperatorVersion: 1
-                    }
+                        OperatorData: { Value: values[i].value, ValueType: "String" }, //"String" here is fixed, it is not the result type!
+                        OperatorVersion: 1,
+                    },
                 };
                 operatorNodes.push(operatorNode);
             }
             var evs = {
                 _name: "VariableSet",
                 _attrs: {
-                    xmlns: "http://www.enfocus.com/2012/EnfocusVariableSet"
+                    xmlns: "http://www.enfocus.com/2012/EnfocusVariableSet",
                 },
                 _content: {
                     Version: "1",
                     Name: "variableset",
                     Variables: variableNodes,
-                    Operators: operatorNodes
-                }
+                    Operators: operatorNodes,
+                },
             };
             try {
                 fs.writeFileSync(_this.finalVariableSetPath, (0, jstoxml_1.toXML)(evs, xmlOptions));
@@ -208,8 +208,8 @@ var PitStopServer = /** @class */ (function () {
                         },
                         fatalError: function (msg) {
                             throw new Error(msg);
-                        }
-                    }
+                        },
+                    },
                 });
                 evs = parser.parseFromString(evsContent);
             }
@@ -305,8 +305,8 @@ var PitStopServer = /** @class */ (function () {
                         },
                         fatalError: function (msg) {
                             throw new Error(msg);
-                        }
-                    }
+                        },
+                    },
                 });
                 xml = parser.parseFromString(xmlContent);
             }
@@ -534,7 +534,7 @@ var PitStopServer = /** @class */ (function () {
                     this.configFileName = options.configFileName;
                     break;
                 case "applicationPath":
-                    PitStopServer.applicationPath = options.applicationPath;
+                    _a.applicationPath = options.applicationPath;
                     break;
                 case "measurementUnit":
                     this.measurementUnit = options.measurementUnit;
@@ -569,15 +569,15 @@ var PitStopServer = /** @class */ (function () {
             }
         }
         //check if the specified path to the cli exists or find it
-        if (PitStopServer.applicationPath !== undefined) {
-            if (fs.existsSync(PitStopServer.applicationPath) == false) {
-                throw new Error("The path to the CLI does not exist (" + PitStopServer.applicationPath + ")");
+        if (_a.applicationPath !== undefined) {
+            if (fs.existsSync(_a.applicationPath) == false) {
+                throw new Error("The path to the CLI does not exist (" + _a.applicationPath + ")");
             }
         }
         else {
             try {
                 this.debugMessages.push("Searching for the application path");
-                PitStopServer.getApplicationPath();
+                _a.getApplicationPath();
             }
             catch (error) {
                 throw error;
@@ -615,9 +615,9 @@ var PitStopServer = /** @class */ (function () {
             switch (_b.label) {
                 case 0:
                     //get the application path of PitStop Server
-                    if (PitStopServer.applicationPath == undefined) {
+                    if (_a.applicationPath == undefined) {
                         try {
-                            PitStopServer.getApplicationPath();
+                            _a.getApplicationPath();
                         }
                         catch (error) {
                             throw error;
@@ -626,7 +626,7 @@ var PitStopServer = /** @class */ (function () {
                     _b.label = 1;
                 case 1:
                     _b.trys.push([1, 3, , 4]);
-                    return [4 /*yield*/, execa(PitStopServer.applicationPath, ["-version"])];
+                    return [4 /*yield*/, execa(_a.applicationPath, ["-version"])];
                 case 2:
                     execResult = _b.sent();
                     return [2 /*return*/, execResult.stdout];
@@ -642,18 +642,18 @@ var PitStopServer = /** @class */ (function () {
      * @returns string
      */
     PitStopServer.getApplicationPath = function () {
-        if (PitStopServer.applicationPath !== undefined) {
-            return PitStopServer.applicationPath;
+        if (_a.applicationPath !== undefined) {
+            return _a.applicationPath;
         }
         if (os.platform().startsWith("win") == true) {
             //access the registry to find the path to PitStop Server
             try {
-                PitStopServer.applicationPath = PitStopServer.findPitStopServerInRegistry();
+                _a.applicationPath = _a.findPitStopServerInRegistry();
             }
             catch (error) {
                 throw error;
             }
-            return PitStopServer.applicationPath;
+            return _a.applicationPath;
         }
         else {
             //locate PitStop Server in the OSX Applications folder; the name of this folder is only localized in the Finder so it is /Applications regardless of the system language
@@ -674,38 +674,48 @@ var PitStopServer = /** @class */ (function () {
                 throw error;
             }
             try {
-                PitStopServer.applicationPath = fs.realpathSync(psPath + "/PitStopServerCLI");
+                _a.applicationPath = fs.realpathSync(psPath + "/PitStopServerCLI");
             }
             catch (error) {
                 throw error;
             }
         }
-        return PitStopServer.applicationPath;
+        return _a.applicationPath;
     };
     /**
      * Private static method to find the path to the PitStop Server CLI application in the Windows registry
      * @returns string
      */
     PitStopServer.findPitStopServerInRegistry = function () {
-        var values;
         try {
-            values = registry.enumerateValues(registry.HKEY.HKEY_LOCAL_MACHINE, "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\App Paths\\PitStop Server.exe");
+            var registryKey = 'HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\App Paths\\PitStop Server.exe';
+            var command = "reg query \"".concat(registryKey, "\" /v Path");
+            var output = (0, child_process_1.execSync)(command, { encoding: 'utf8' });
+            // Parse the registry output to find the Path value
+            var lines = output.split('\r\n');
+            for (var _i = 0, lines_1 = lines; _i < lines_1.length; _i++) {
+                var line = lines_1[_i];
+                var trimmedLine = line.trim();
+                if (trimmedLine.startsWith('Path') && trimmedLine.includes('REG_SZ')) {
+                    // Extract the path value (format: "Path    REG_SZ    C:\Path\To\Application")
+                    var parts = trimmedLine.split('REG_SZ');
+                    if (parts.length > 1) {
+                        var applicationPath = parts[1].trim();
+                        if (applicationPath === '') {
+                            throw new Error('No path value found for PitStop Server.exe in the registry');
+                        }
+                        return applicationPath + '\\PitStopServerCLI.exe';
+                    }
+                }
+            }
+            throw new Error('No key found with the name Path under PitStop Server.exe in the registry');
         }
         catch (error) {
-            throw error;
-        }
-        var applicationPath = "";
-        for (var i = 0; i < values.length; i++) {
-            if ((values[i].name == "Path")) {
-                applicationPath = values[i].data;
-                break;
+            if (error instanceof Error && error.message.includes('registry')) {
+                throw error;
             }
-        }
-        if (applicationPath == "") {
-            throw new Error("No key found with the name Path under PitStop Server.exe in the registry");
-        }
-        else {
-            return applicationPath + "\\PitStopServerCLI.exe";
+            var errorMessage = error instanceof Error ? error.message : String(error);
+            throw new Error('Failed to query Windows registry for PitStop Server path: ' + errorMessage);
         }
     };
     return PitStopServer;

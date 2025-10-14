@@ -1,8 +1,8 @@
 import * as fs from "fs";
 import { DOMParser } from "xmldom";
 import * as xpath from "xpath";
-import * as execa from "execa";
-import * as registry from "registry-js";
+import execa from "execa";
+import { execSync } from "child_process";
 import * as os from "os";
 import * as _ from "lodash";
 import * as rimraf from "rimraf";
@@ -727,26 +727,36 @@ export class PitStopServer {
    * @returns string
    */
   private static findPitStopServerInRegistry = () => {
-    let values;
     try {
-      values = registry.enumerateValues(
-        registry.HKEY.HKEY_LOCAL_MACHINE,
-        "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\App Paths\\PitStop Server.exe"
-      );
-    } catch (error) {
-      throw error;
-    }
-    let applicationPath = "";
-    for (let i = 0; i < values.length; i++) {
-      if ((values[i].name == "Path")) {
-        applicationPath = values[i].data;
-        break;
+      const registryKey = 'HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\App Paths\\PitStop Server.exe';
+      const command = `reg query "${registryKey}" /v Path`;
+      
+      const output = execSync(command, { encoding: 'utf8' });
+      
+      // Parse the registry output to find the Path value
+      const lines = output.split('\r\n');
+      for (const line of lines) {
+        const trimmedLine = line.trim();
+        if (trimmedLine.startsWith('Path') && trimmedLine.includes('REG_SZ')) {
+          // Extract the path value (format: "Path    REG_SZ    C:\Path\To\Application")
+          const parts = trimmedLine.split('REG_SZ');
+          if (parts.length > 1) {
+            const applicationPath = parts[1].trim();
+            if (applicationPath === '') {
+              throw new Error('No path value found for PitStop Server.exe in the registry');
+            }
+            return applicationPath + '\\PitStopServerCLI.exe';
+          }
+        }
       }
-    }
-    if (applicationPath == "") {
-      throw new Error("No key found with the name Path under PitStop Server.exe in the registry");
-    } else {
-      return applicationPath + "\\PitStopServerCLI.exe";
+      
+      throw new Error('No key found with the name Path under PitStop Server.exe in the registry');
+    } catch (error) {
+      if (error instanceof Error && error.message.includes('registry')) {
+        throw error;
+      }
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      throw new Error('Failed to query Windows registry for PitStop Server path: ' + errorMessage);
     }
   };
 }
