@@ -5,16 +5,6 @@ import { execSync } from "child_process";
 
 import {
 	execa,
-	ExecaError,
-	type ResultPromise,
-	type Result,
-	type Options,
-	type StdinOption,
-	type StdoutStderrOption,
-	type TemplateExpression,
-	type Message,
-	type VerboseObject,
-	type ExecaMethod,
 } from 'execa';
 import * as os from "os";
 import * as _ from "lodash";
@@ -498,8 +488,7 @@ export class PitStopServer {
         if (
             Array.isArray(inputPathNode) &&
             inputPathNode.length > 0 &&
-            xml.defaultView !== null &&
-            inputPathNode[0] instanceof xml.defaultView.Node
+            xml.defaultView !== null
         ) {
             (inputPathNode[0] as Node).appendChild(newText);
         } else {
@@ -517,8 +506,7 @@ export class PitStopServer {
         if (
             Array.isArray(outputPathNode) &&
             outputPathNode.length > 0 &&
-            xml.defaultView !== null &&
-            outputPathNode[0] instanceof xml.defaultView.Node
+            xml.defaultView !== null
         ) {
             (outputPathNode[0] as Node).appendChild(newText);
         } else {
@@ -540,8 +528,7 @@ export class PitStopServer {
         if (
             Array.isArray(mutatorsNode) &&
             mutatorsNode.length > 0 &&
-            xml.defaultView !== null &&
-            mutatorsNode[0] instanceof xml.defaultView.Node
+            xml.defaultView !== null
         ) {
             (mutatorsNode[0] as Node).appendChild(newElem);
         } else {
@@ -562,8 +549,7 @@ export class PitStopServer {
           if (
               Array.isArray(mutatorsNode) &&
               mutatorsNode.length > 0 &&
-              xml.defaultView !== null &&
-              mutatorsNode[0] instanceof xml.defaultView.Node
+              xml.defaultView !== null
           ) {
               (mutatorsNode[0] as Node).appendChild(newElem);
           } else {
@@ -580,8 +566,7 @@ export class PitStopServer {
         if (
             Array.isArray(reportsNode) &&
             reportsNode.length > 0 &&
-            xml.defaultView !== null &&
-            reportsNode[0] instanceof xml.defaultView.Node
+            xml.defaultView !== null
         ) {
             (reportsNode[0] as Node).appendChild(newElemReportXML);
         } else {
@@ -611,8 +596,7 @@ export class PitStopServer {
         if (
             Array.isArray(reportsNode) &&
             reportsNode.length > 0 &&
-            xml.defaultView !== null &&
-            reportsNode[0] instanceof xml.defaultView.Node
+            xml.defaultView !== null
         ) {
             (reportsNode[0] as Node).appendChild(newElemReportPDF);
         } else {
@@ -630,8 +614,7 @@ export class PitStopServer {
         if (
             Array.isArray(taskReportNode) &&
             taskReportNode.length > 0 &&
-            xml.defaultView !== null &&
-            taskReportNode[0] instanceof xml.defaultView.Node
+            xml.defaultView !== null
         ) {
             (taskReportNode[0] as Node).appendChild(newElemTaskReport);
         } else {
@@ -657,8 +640,7 @@ export class PitStopServer {
         if (
             !Array.isArray(processNode) ||
             processNode.length === 0 ||
-            xml.defaultView === null ||
-            !(processNode[0] instanceof xml.defaultView.Node)
+            xml.defaultView === null
         ) {
             throw new Error('Could not find <cf:Process> node in the configuration XML.');
         }
@@ -667,12 +649,11 @@ export class PitStopServer {
         if (
             Array.isArray(variableSetNode) &&
             variableSetNode.length !== 0 &&
-            xml.defaultView !== null &&
-            variableSetNode[0] instanceof xml.defaultView.Node
+            xml.defaultView !== null
         ) {
           let oldValue = select("//cf:Process/cf:SmartPreflight/cf:VariableSet", xml);
           let newValue = xml.createTextNode(this.finalVariableSetPath);
-          if (Array.isArray(oldValue) && oldValue.length > 0 && oldValue[0] instanceof xml.defaultView.Node) {
+          if (Array.isArray(oldValue) && oldValue.length > 0) {
             (variableSetNode[0] as Node).replaceChild(newValue, oldValue[0] as Node);
           }
         } else {
@@ -697,8 +678,7 @@ export class PitStopServer {
       } else {
         let measurementUnitText = xml.createTextNode(this.measurementUnit!);
         if (
-            xml.defaultView !== null &&
-            measurementUnitNode[0] instanceof xml.defaultView.Node
+            xml.defaultView !== null
         ) {
             (measurementUnitNode[0] as Node).appendChild(measurementUnitText);
         } else {
@@ -716,8 +696,7 @@ export class PitStopServer {
       } else {
         let languageText = xml.createTextNode(this.language!);
         if (
-            xml.defaultView !== null &&
-            languageNode[0] instanceof xml.defaultView.Node
+            xml.defaultView !== null
         ) {
             (languageNode[0] as Node).appendChild(languageText);
         } else {
