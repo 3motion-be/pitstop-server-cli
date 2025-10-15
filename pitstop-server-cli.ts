@@ -1,13 +1,9 @@
 import * as fs from "fs";
 import { DOMParser } from "@xmldom/xmldom";
 import * as xpath from "xpath";
-import { execSync } from "child_process";
-
-import {
-	execa,
-} from 'execa';
+import { execSync, exec } from "child_process";
+import { promisify } from "util";
 import * as os from "os";
-import * as _ from "lodash";
 import * as rimraf from "rimraf";
 import { toXML } from "jstoxml";
 import * as path from "path";
@@ -236,6 +232,36 @@ export class PitStopServer {
   // PitStopServer public instance methods
   //
   //////////////////////////////////////////////////////////////////////////
+
+  /**
+   * Helper method to execute commands using Node.js native exec
+   * @param command - The command to execute
+   * @param args - Array of arguments
+   * @returns Promise with execution result
+   */
+  private executeCommand = async (command: string, args: string[]): Promise<Record<string, any>> => {
+    const execAsync = promisify(exec);
+    const fullCommand = `"${command}" ${args.join(' ')}`;
+    
+    try {
+      const { stdout, stderr } = await execAsync(fullCommand, {
+        maxBuffer: 10 * 1024 * 1024 // 10MB buffer
+      });
+      return {
+        command: fullCommand,
+        exitCode: 0,
+        stdout: stdout.trim(),
+        stderr: stderr.trim()
+      };
+    } catch (error: any) {
+      return {
+        command: fullCommand,
+        exitCode: error.code || -1,
+        stdout: error.stdout || '',
+        stderr: error.stderr || error.message
+      };
+    }
+  };
   /**
    * Runs PitStop Server
    * @returns execution result
@@ -254,7 +280,7 @@ export class PitStopServer {
     this.startExecutionTime = new Date().getTime();
     let execResult: Record<string, any>;
     try {
-      execResult = await execa(PitStopServer.applicationPath, ["-config", this.finalConfigFilePath]);
+      execResult = await this.executeCommand(PitStopServer.applicationPath, ["-config", this.finalConfigFilePath]);
       this.debugMessages.push("PitStop Server ended at " + new Date().toISOString());
       this.endExecutionTime = new Date().getTime();
       this.executionTime = this.endExecutionTime - this.startExecutionTime;
@@ -801,6 +827,36 @@ export class PitStopServer {
   // PitStopServer static API methods
   //
   //////////////////////////////////////////////////////////////////////////
+
+  /**
+   * Static helper method to execute commands using Node.js native exec
+   * @param command - The command to execute
+   * @param args - Array of arguments
+   * @returns Promise with execution result
+   */
+  private static executeCommand = async (command: string, args: string[]): Promise<Record<string, any>> => {
+    const execAsync = promisify(exec);
+    const fullCommand = `"${command}" ${args.join(' ')}`;
+    
+    try {
+      const { stdout, stderr } = await execAsync(fullCommand, {
+        maxBuffer: 10 * 1024 * 1024 // 10MB buffer
+      });
+      return {
+        command: fullCommand,
+        exitCode: 0,
+        stdout: stdout.trim(),
+        stderr: stderr.trim()
+      };
+    } catch (error: any) {
+      return {
+        command: fullCommand,
+        exitCode: error.code || -1,
+        stdout: error.stdout || '',
+        stderr: error.stderr || error.message
+      };
+    }
+  };
   /**
    * Static method returning the version number of PitStop Server
    * @returns string
@@ -816,7 +872,7 @@ export class PitStopServer {
     }
     let execResult;
     try {
-      execResult = await execa(PitStopServer.applicationPath, ["-version"]);
+      execResult = await PitStopServer.executeCommand(PitStopServer.applicationPath, ["-version"]);
       return execResult.stdout;
     } catch (error) {
       throw error;

@@ -72,6 +72,13 @@ export declare class PitStopServer {
      */
     constructor(options: PitStopServerOptions);
     /**
+     * Helper method to execute commands using Node.js native exec
+     * @param command - The command to execute
+     * @param args - Array of arguments
+     * @returns Promise with execution result
+     */
+    private executeCommand;
+    /**
      * Runs PitStop Server
      * @returns execution result
      */
@@ -99,10 +106,17 @@ export declare class PitStopServer {
      */
     private createBasicConfigFile;
     /**
+     * Static helper method to execute commands using Node.js native exec
+     * @param command - The command to execute
+     * @param args - Array of arguments
+     * @returns Promise with execution result
+     */
+    private static executeCommand;
+    /**
      * Static method returning the version number of PitStop Server
      * @returns string
      */
-    static getVersion: () => Promise<string>;
+    static getVersion: () => Promise<any>;
     /**
      * Static function to get the path of the CLI application of PitStop Server
      * @returns string
