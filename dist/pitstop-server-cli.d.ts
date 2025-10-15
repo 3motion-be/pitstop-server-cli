@@ -22,6 +22,8 @@ export interface PitStopServerOptions {
     applicationPath?: string;
     measurementUnit?: "Millimeter" | "Centimeter" | "Inch" | "Point";
     language?: string;
+    maxReportItemsPerCategory?: number;
+    maxReportOccurencesPerItem?: number;
 }
 /**
  * Export of the interface for each individual variable for use in VariableSetOptions
@@ -66,6 +68,8 @@ export declare class PitStopServer {
     private startExecutionTime;
     private endExecutionTime;
     executionTime: number;
+    private maxReportItemsPerCategory;
+    private maxReportOccurencesPerItem;
     /**
      * Constructs a PitStopServer instance
      * @param options

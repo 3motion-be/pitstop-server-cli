@@ -31,6 +31,8 @@ export interface PitStopServerOptions {
   applicationPath?: string;
   measurementUnit?: "Millimeter" | "Centimeter" | "Inch" | "Point";
   language?: string;
+  maxReportItemsPerCategory?: number;
+  maxReportOccurencesPerItem?: number;
 }
 
 /**
@@ -77,6 +79,8 @@ export class PitStopServer {
   private startExecutionTime: number | undefined;
   private endExecutionTime: number | undefined;
   public executionTime: number;
+  private maxReportItemsPerCategory: number;
+  private maxReportOccurencesPerItem: number;
 
   //////////////////////////////////////////////////////////////////////////
   //
@@ -106,6 +110,8 @@ export class PitStopServer {
     this.measurementUnit = "Millimeter";
     this.language = "enUS";
     this.executionTime = 0;
+    this.maxReportItemsPerCategory = 100;
+    this.maxReportOccurencesPerItem = 100;
 
     //initialize the instance variables with the values of the options
     for (const option in options) {
@@ -167,6 +173,12 @@ export class PitStopServer {
           break;
         case "language":
           this.language = options.language;
+          break;
+        case "maxReportItemsPerCategory":
+          this.maxReportItemsPerCategory = options.maxReportItemsPerCategory!;
+          break;
+        case "maxReportOccurencesPerItem":
+          this.maxReportOccurencesPerItem = options.maxReportOccurencesPerItem!;
           break;
         default:
           this.debugMessages.push("Unknown option " + option + " specified");
@@ -620,11 +632,11 @@ export class PitStopServer {
         newElemVersion.appendChild(newVersionText);
         newElemReportXML.appendChild(newElemVersion);
         let newElemNrItems = xml.createElement("cf:MaxReportedNbItemsPerCategory");
-        let newNrItemsText = xml.createTextNode("-1");
+        let newNrItemsText = xml.createTextNode(this.maxReportItemsPerCategory.toString());
         newElemNrItems.appendChild(newNrItemsText);
         newElemReportXML.appendChild(newElemNrItems);
         let newElemNrOccurrences = xml.createElement("cf:MaxReportedNbOccurrencesPerItem");
-        let newNrOccurrencesText = xml.createTextNode("-1");
+        let newNrOccurrencesText = xml.createTextNode(this.maxReportOccurencesPerItem.toString());
         newElemNrOccurrences.appendChild(newNrOccurrencesText);
         newElemReportXML.appendChild(newElemNrOccurrences);
       }
@@ -646,11 +658,11 @@ export class PitStopServer {
         newElemReportPath.appendChild(newReportPathText);
         newElemReportJSON.appendChild(newElemReportPath);
         let newElemNrItems = xml.createElement("cf:MaxReportedNbItemsPerCategory");
-        let newNrItemsText = xml.createTextNode("-1");
+        let newNrItemsText = xml.createTextNode(this.maxReportItemsPerCategory.toString());
         newElemNrItems.appendChild(newNrItemsText);
         newElemReportJSON.appendChild(newElemNrItems);
         let newElemNrOccurrences = xml.createElement("cf:MaxReportedNbOccurrencesPerItem");
-        let newNrOccurrencesText = xml.createTextNode("-1");
+        let newNrOccurrencesText = xml.createTextNode(this.maxReportOccurencesPerItem.toString());
         newElemNrOccurrences.appendChild(newNrOccurrencesText);
         newElemReportJSON.appendChild(newElemNrOccurrences);
       }
