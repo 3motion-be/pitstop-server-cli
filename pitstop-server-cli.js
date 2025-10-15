@@ -325,7 +325,7 @@ var PitStopServer = /** @class */ (function () {
             catch (error) {
                 throw error;
             }
-            var select = xpath.useNamespaces({ cf: "http://www.enfocus.com/2011/PitStopServerCLI_Configuration.xsd" });
+            var select = xpath.useNamespaces({ cf: "http://www.enfocus.com/PitStop/24/PitStopServerCLI_Configuration.xsd" });
             var newElem, newText;
             //modify the config file
             var inputFileName = "";
@@ -341,8 +341,7 @@ var PitStopServer = /** @class */ (function () {
                     // Ensure inputPathNode is an array of Node and has at least one element
                     if (Array.isArray(inputPathNode) &&
                         inputPathNode.length > 0 &&
-                        xml.defaultView !== null &&
-                        inputPathNode[0] instanceof xml.defaultView.Node) {
+                        xml.defaultView !== null) {
                         inputPathNode[0].appendChild(newText);
                     }
                     else {
@@ -358,8 +357,7 @@ var PitStopServer = /** @class */ (function () {
                     newText = xml.createTextNode(_this.outputFolder + "/" + _this.outputPDFName);
                     if (Array.isArray(outputPathNode) &&
                         outputPathNode.length > 0 &&
-                        xml.defaultView !== null &&
-                        outputPathNode[0] instanceof xml.defaultView.Node) {
+                        xml.defaultView !== null) {
                         outputPathNode[0].appendChild(newText);
                     }
                     else {
@@ -379,8 +377,7 @@ var PitStopServer = /** @class */ (function () {
                     newElem.appendChild(newText);
                     if (Array.isArray(mutatorsNode) &&
                         mutatorsNode.length > 0 &&
-                        xml.defaultView !== null &&
-                        mutatorsNode[0] instanceof xml.defaultView.Node) {
+                        xml.defaultView !== null) {
                         mutatorsNode[0].appendChild(newElem);
                     }
                     else {
@@ -399,8 +396,7 @@ var PitStopServer = /** @class */ (function () {
                         newElem.appendChild(newText);
                         if (Array.isArray(mutatorsNode) &&
                             mutatorsNode.length > 0 &&
-                            xml.defaultView !== null &&
-                            mutatorsNode[0] instanceof xml.defaultView.Node) {
+                            xml.defaultView !== null) {
                             mutatorsNode[0].appendChild(newElem);
                         }
                         else {
@@ -415,8 +411,7 @@ var PitStopServer = /** @class */ (function () {
                     var newElemReportXML = xml.createElement("cf:ReportXML");
                     if (Array.isArray(reportsNode) &&
                         reportsNode.length > 0 &&
-                        xml.defaultView !== null &&
-                        reportsNode[0] instanceof xml.defaultView.Node) {
+                        xml.defaultView !== null) {
                         reportsNode[0].appendChild(newElemReportXML);
                     }
                     else {
@@ -439,14 +434,38 @@ var PitStopServer = /** @class */ (function () {
                     newElemNrOccurrences.appendChild(newNrOccurrencesText);
                     newElemReportXML.appendChild(newElemNrOccurrences);
                 }
+                if (_this.jsonReport == true) {
+                    _this.debugMessages.push("Defining a JSON report");
+                    var reportsNode = select("//cf:Reports", xml);
+                    var newElemReportJSON = xml.createElement("cf:ReportJSON");
+                    if (Array.isArray(reportsNode) &&
+                        reportsNode.length > 0 &&
+                        xml.defaultView !== null) {
+                        reportsNode[0].appendChild(newElemReportJSON);
+                    }
+                    else {
+                        throw new Error('Could not find <cf:Reports> node in the configuration XML.');
+                    }
+                    var newElemReportPath = xml.createElement("cf:ReportPath");
+                    var newReportPathText = xml.createTextNode(_this.outputFolder + "/" + _this.jsonReportName);
+                    newElemReportPath.appendChild(newReportPathText);
+                    newElemReportJSON.appendChild(newElemReportPath);
+                    var newElemNrItems = xml.createElement("cf:MaxReportedNbItemsPerCategory");
+                    var newNrItemsText = xml.createTextNode("-1");
+                    newElemNrItems.appendChild(newNrItemsText);
+                    newElemReportJSON.appendChild(newElemNrItems);
+                    var newElemNrOccurrences = xml.createElement("cf:MaxReportedNbOccurrencesPerItem");
+                    var newNrOccurrencesText = xml.createTextNode("-1");
+                    newElemNrOccurrences.appendChild(newNrOccurrencesText);
+                    newElemReportJSON.appendChild(newElemNrOccurrences);
+                }
                 if (_this.pdfReport == true) {
                     _this.debugMessages.push("Defining a PDF report");
                     var reportsNode = select("//cf:Reports", xml);
                     var newElemReportPDF = xml.createElement("cf:ReportPDF");
                     if (Array.isArray(reportsNode) &&
                         reportsNode.length > 0 &&
-                        xml.defaultView !== null &&
-                        reportsNode[0] instanceof xml.defaultView.Node) {
+                        xml.defaultView !== null) {
                         reportsNode[0].appendChild(newElemReportPDF);
                     }
                     else {
@@ -463,8 +482,7 @@ var PitStopServer = /** @class */ (function () {
                     var newElemTaskReport = xml.createElement("cf:TaskReportPath");
                     if (Array.isArray(taskReportNode) &&
                         taskReportNode.length > 0 &&
-                        xml.defaultView !== null &&
-                        taskReportNode[0] instanceof xml.defaultView.Node) {
+                        xml.defaultView !== null) {
                         taskReportNode[0].appendChild(newElemTaskReport);
                     }
                     else {
@@ -487,18 +505,16 @@ var PitStopServer = /** @class */ (function () {
                     _this.debugMessages.push("Adding the variable set " + _this.finalVariableSetPath);
                     if (!Array.isArray(processNode) ||
                         processNode.length === 0 ||
-                        xml.defaultView === null ||
-                        !(processNode[0] instanceof xml.defaultView.Node)) {
+                        xml.defaultView === null) {
                         throw new Error('Could not find <cf:Process> node in the configuration XML.');
                     }
                     var variableSetNode = select("cf:SmartPreflight/cf:VariableSet", processNode[0]);
                     if (Array.isArray(variableSetNode) &&
                         variableSetNode.length !== 0 &&
-                        xml.defaultView !== null &&
-                        variableSetNode[0] instanceof xml.defaultView.Node) {
+                        xml.defaultView !== null) {
                         var oldValue = select("//cf:Process/cf:SmartPreflight/cf:VariableSet", xml);
                         var newValue = xml.createTextNode(_this.finalVariableSetPath);
-                        if (Array.isArray(oldValue) && oldValue.length > 0 && oldValue[0] instanceof xml.defaultView.Node) {
+                        if (Array.isArray(oldValue) && oldValue.length > 0) {
                             variableSetNode[0].replaceChild(newValue, oldValue[0]);
                         }
                     }
@@ -519,8 +535,7 @@ var PitStopServer = /** @class */ (function () {
                 }
                 else {
                     var measurementUnitText = xml.createTextNode(_this.measurementUnit);
-                    if (xml.defaultView !== null &&
-                        measurementUnitNode[0] instanceof xml.defaultView.Node) {
+                    if (xml.defaultView !== null) {
                         measurementUnitNode[0].appendChild(measurementUnitText);
                     }
                     else {
@@ -535,8 +550,7 @@ var PitStopServer = /** @class */ (function () {
                 }
                 else {
                     var languageText = xml.createTextNode(_this.language);
-                    if (xml.defaultView !== null &&
-                        languageNode[0] instanceof xml.defaultView.Node) {
+                    if (xml.defaultView !== null) {
                         languageNode[0].appendChild(languageText);
                     }
                     else {
@@ -556,7 +570,7 @@ var PitStopServer = /** @class */ (function () {
          */
         this.createBasicConfigFile = function () {
             _this.debugMessages.push("Creating a basic configuration file");
-            var xmlString = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n        <cf:Configuration xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:cf=\"http://www.enfocus.com/2011/PitStopServerCLI_Configuration.xsd\">\n        <cf:Versioning>\n        <cf:Version>7</cf:Version>\n        <cf:VersioningStrategy>MustHonor</cf:VersioningStrategy>\n        </cf:Versioning>\n        <cf:Initialize>\n        <cf:ProcessingMethod>EnforceServer</cf:ProcessingMethod>\n        <cf:ShutDownServerAtExit>false</cf:ShutDownServerAtExit>\n        </cf:Initialize>\n        <cf:TaskReport>\n        <cf:LogCommandLine>true</cf:LogCommandLine>\n        <cf:LogProcessResults>true</cf:LogProcessResults>\n        <cf:LogErrors>true</cf:LogErrors>\n        <cf:LogSupportInfo>true</cf:LogSupportInfo>\n        </cf:TaskReport>\n        <cf:Process>\n        <cf:InputPDF>\n        <cf:InputPath></cf:InputPath>\n        </cf:InputPDF>\n        <cf:OutputPDF>\n        <cf:OutputPath></cf:OutputPath>\n        </cf:OutputPDF>\n        <cf:Mutators>\n        </cf:Mutators>\n        <cf:Reports>\n        </cf:Reports>\n        <cf:MeasurementUnit></cf:MeasurementUnit>\n        <cf:Language></cf:Language>\n        </cf:Process>\n        </cf:Configuration>";
+            var xmlString = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n        <cf:Configuration xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:cf=\"http://www.enfocus.com/PitStop/24/PitStopServerCLI_Configuration.xsd\">\n        <cf:Versioning>\n        <cf:Version>11</cf:Version>\n        <cf:VersioningStrategy>MustHonor</cf:VersioningStrategy>\n        </cf:Versioning>\n        <cf:Initialize>\n        <cf:ProcessingMethod>EnforceServer</cf:ProcessingMethod>\n        <cf:ShutDownServerAtExit>false</cf:ShutDownServerAtExit>\n        </cf:Initialize>\n        <cf:TaskReport>\n        <cf:LogCommandLine>true</cf:LogCommandLine>\n        <cf:LogProcessResults>true</cf:LogProcessResults>\n        <cf:LogErrors>true</cf:LogErrors>\n        <cf:LogSupportInfo>true</cf:LogSupportInfo>\n        </cf:TaskReport>\n        <cf:Process>\n        <cf:InputPDF>\n        <cf:InputPath></cf:InputPath>\n        </cf:InputPDF>\n        <cf:OutputPDF>\n        <cf:OutputPath></cf:OutputPath>\n        </cf:OutputPDF>\n        <cf:Mutators>\n        </cf:Mutators>\n        <cf:Reports>\n        </cf:Reports>\n        <cf:MeasurementUnit></cf:MeasurementUnit>\n        <cf:Language></cf:Language>\n        </cf:Process>\n        </cf:Configuration>";
             try {
                 _this.debugMessages.push("Saving basic configuration file " + _this.finalConfigFilePath);
                 fs.writeFileSync(_this.finalConfigFilePath, xmlString);
@@ -576,6 +590,7 @@ var PitStopServer = /** @class */ (function () {
         this.debugMessages = [];
         this.configFileName = "config.xml";
         this.xmlReport = false;
+        this.jsonReport = false;
         this.taskReportName = "taskreport.xml";
         this.variableSetName = "variableset.evs";
         this.measurementUnit = "Millimeter";
@@ -615,6 +630,12 @@ var PitStopServer = /** @class */ (function () {
                 case "xmlReportName":
                     this.xmlReportName = options.xmlReportName;
                     break;
+                case "jsonReport":
+                    this.jsonReport = options.jsonReport;
+                    break;
+                case "jsonReportName":
+                    this.jsonReportName = options.jsonReportName;
+                    break;
                 case "taskReport":
                     this.taskReport = options.taskReport;
                     break;
@@ -649,6 +670,9 @@ var PitStopServer = /** @class */ (function () {
         }
         if (this.xmlReportName == undefined) {
             this.xmlReportName = path.parse(this.inputPDF).name + ".xml";
+        }
+        if (this.jsonReportName == undefined) {
+            this.jsonReportName = path.parse(this.inputPDF).name + ".json";
         }
         //check if the output folder exists and is writable
         if (fs.existsSync(this.outputFolder) == false) {

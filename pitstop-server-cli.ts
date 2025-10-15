@@ -27,6 +27,8 @@ export interface PitStopServerOptions {
   pdfReportName?: string;
   xmlReport?: boolean;
   xmlReportName?: string;
+  jsonReport?: boolean;
+  jsonReportName?: string;
   taskReport?: boolean;
   taskReportName?: string;
   configFile?: string;
@@ -70,6 +72,8 @@ export class PitStopServer {
   private pdfReportName: string | undefined;
   private xmlReport: boolean | undefined;
   private xmlReportName: string | undefined;
+  private jsonReport: boolean | undefined;
+  private jsonReportName: string | undefined;
   private taskReport: boolean | undefined;
   private taskReportName: string | undefined;
   public debugMessages: string[];
@@ -101,6 +105,7 @@ export class PitStopServer {
     this.debugMessages = [];
     this.configFileName = "config.xml";
     this.xmlReport = false;
+    this.jsonReport = false;
     this.taskReportName = "taskreport.xml";
     this.variableSetName = "variableset.evs";
     this.measurementUnit = "Millimeter";
@@ -141,6 +146,12 @@ export class PitStopServer {
         case "xmlReportName":
           this.xmlReportName = options.xmlReportName!;
           break;
+        case "jsonReport":
+          this.jsonReport = options.jsonReport!;
+          break;
+        case "jsonReportName":
+          this.jsonReportName = options.jsonReportName!;
+          break;
         case "taskReport":
           this.taskReport = options.taskReport!;
           break;
@@ -176,6 +187,9 @@ export class PitStopServer {
     }
     if (this.xmlReportName == undefined) {
       this.xmlReportName = path.parse(this.inputPDF!).name + ".xml";
+    }
+    if (this.jsonReportName == undefined) {
+      this.jsonReportName = path.parse(this.inputPDF!).name + ".json";
     }
 
     //check if the output folder exists and is writable
@@ -469,7 +483,7 @@ export class PitStopServer {
     } catch (error) {
       throw error;
     }
-    let select = xpath.useNamespaces({ cf: "http://www.enfocus.com/2011/PitStopServerCLI_Configuration.xsd" });
+    let select = xpath.useNamespaces({ cf: "http://www.enfocus.com/PitStop/24/PitStopServerCLI_Configuration.xsd" });
     let newElem: Element, newText: Text;
 
     //modify the config file
@@ -588,6 +602,32 @@ export class PitStopServer {
         let newNrOccurrencesText = xml.createTextNode("-1");
         newElemNrOccurrences.appendChild(newNrOccurrencesText);
         newElemReportXML.appendChild(newElemNrOccurrences);
+      }
+      if (this.jsonReport == true) {
+        this.debugMessages.push("Defining a JSON report");
+        let reportsNode = select("//cf:Reports", xml);
+        let newElemReportJSON = xml.createElement("cf:ReportJSON");
+        if (
+            Array.isArray(reportsNode) &&
+            reportsNode.length > 0 &&
+            xml.defaultView !== null
+        ) {
+            (reportsNode[0] as Node).appendChild(newElemReportJSON);
+        } else {
+            throw new Error('Could not find <cf:Reports> node in the configuration XML.');
+        }
+        let newElemReportPath = xml.createElement("cf:ReportPath");
+        let newReportPathText = xml.createTextNode(this.outputFolder + "/" + this.jsonReportName);
+        newElemReportPath.appendChild(newReportPathText);
+        newElemReportJSON.appendChild(newElemReportPath);
+        let newElemNrItems = xml.createElement("cf:MaxReportedNbItemsPerCategory");
+        let newNrItemsText = xml.createTextNode("-1");
+        newElemNrItems.appendChild(newNrItemsText);
+        newElemReportJSON.appendChild(newElemNrItems);
+        let newElemNrOccurrences = xml.createElement("cf:MaxReportedNbOccurrencesPerItem");
+        let newNrOccurrencesText = xml.createTextNode("-1");
+        newElemNrOccurrences.appendChild(newNrOccurrencesText);
+        newElemReportJSON.appendChild(newElemNrOccurrences);
       }
       if (this.pdfReport == true) {
         this.debugMessages.push("Defining a PDF report");
@@ -718,9 +758,9 @@ export class PitStopServer {
   private createBasicConfigFile = () => {
     this.debugMessages.push("Creating a basic configuration file");
     let xmlString: string = `<?xml version="1.0" encoding="utf-8"?>
-        <cf:Configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:cf="http://www.enfocus.com/2011/PitStopServerCLI_Configuration.xsd">
+        <cf:Configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:cf="http://www.enfocus.com/PitStop/24/PitStopServerCLI_Configuration.xsd">
         <cf:Versioning>
-        <cf:Version>7</cf:Version>
+        <cf:Version>11</cf:Version>
         <cf:VersioningStrategy>MustHonor</cf:VersioningStrategy>
         </cf:Versioning>
         <cf:Initialize>
