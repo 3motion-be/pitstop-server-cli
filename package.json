@@ -1,8 +1,9 @@
 {
-  "name": "@enfocussw/pitstop-server-cli",
-  "version": "1.0.5",
+  "name": "@3motion-be/pitstop-server-cli",
+  "version": "2.0.0",
   "description": "Make working with the PitStop Server CLI easier",
   "main": "pitstop-server-cli.js",
+  "types": "pitstop-server-cli.d.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -15,7 +16,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/EnfocusSW/pitstop-server-cli.git"
+    "url": "git+https://github.com/3motion-be/pitstop-server-cli.git"
   },
   "author": "freddy-pieters",
   "license": "ISC",
