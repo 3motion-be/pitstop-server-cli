@@ -4,7 +4,6 @@ import * as xpath from "xpath";
 import { execSync, exec } from "child_process";
 import { promisify } from "util";
 import * as os from "os";
-import * as rimraf from "rimraf";
 import { toXML } from "jstoxml";
 import * as path from "path";
 
@@ -469,7 +468,7 @@ export class PitStopServer {
    */
   public cleanup = () => {
     try {
-      rimraf.sync(this.outputFolder!);
+      fs.rmSync(this.outputFolder!, { recursive: true, force: true });
     } catch (error) {
       throw error;
     }

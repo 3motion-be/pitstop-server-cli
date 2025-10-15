@@ -30,7 +30,6 @@ const xpath = __importStar(require("xpath"));
 const child_process_1 = require("child_process");
 const util_1 = require("util");
 const os = __importStar(require("os"));
-const rimraf = __importStar(require("rimraf"));
 const jstoxml_1 = require("jstoxml");
 const path = __importStar(require("path"));
 /**
@@ -452,7 +451,7 @@ class PitStopServer {
      */
     cleanup = () => {
         try {
-            rimraf.sync(this.outputFolder);
+            fs.rmSync(this.outputFolder, { recursive: true, force: true });
         }
         catch (error) {
             throw error;
