@@ -86,7 +86,12 @@ export declare class PitStopServer {
      * Runs PitStop Server
      * @returns execution result
      */
-    run: () => Promise<Record<string, any>>;
+    run: () => Promise<{
+        command: any;
+        exitCode: any;
+        stdout: any;
+        stderr: any;
+    }>;
     /**
      * Based on a simple object the variable set file is created and saved in the output folder
      * @param values

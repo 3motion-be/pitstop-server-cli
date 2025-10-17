@@ -250,7 +250,7 @@ export class PitStopServer {
    * @param args - Array of arguments
    * @returns Promise with execution result
    */
-  private executeCommand = async (command: string, args: string[]): Promise<Record<string, any>> => {
+  private executeCommand = async (command: string, args: string[]): Promise<{command: string, exitCode: number, stdout: string, stderr: string}> => {
     const execAsync = promisify(exec);
     const fullCommand = `"${command}" ${args.join(' ')}`;
     
@@ -289,7 +289,7 @@ export class PitStopServer {
     this.debugMessages.push("CLI path: " + PitStopServer.applicationPath);
     this.debugMessages.push("PitStop Server started at " + new Date().toISOString());
     this.startExecutionTime = new Date().getTime();
-    let execResult: Record<string, any>;
+    let execResult: {command: string, exitCode: number, stdout: string, stderr: string};
     try {
       execResult = await this.executeCommand(PitStopServer.applicationPath, ["-config", this.finalConfigFilePath]);
       this.debugMessages.push("PitStop Server ended at " + new Date().toISOString());
@@ -805,10 +805,8 @@ export class PitStopServer {
         <cf:ShutDownServerAtExit>false</cf:ShutDownServerAtExit>
         </cf:Initialize>
         <cf:TaskReport>
-        <cf:LogCommandLine>true</cf:LogCommandLine>
         <cf:LogProcessResults>true</cf:LogProcessResults>
         <cf:LogErrors>true</cf:LogErrors>
-        <cf:LogSupportInfo>true</cf:LogSupportInfo>
         </cf:TaskReport>
         <cf:Process>
         <cf:InputPDF>

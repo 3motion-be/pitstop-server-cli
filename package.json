@@ -1,9 +1,9 @@
 {
   "name": "@3motion-be/pitstop-server-cli",
-  "version": "2.0.0",
+  "version": "2.0.2",
   "description": "Make working with the PitStop Server CLI easier",
-  "main": "pitstop-server-cli.js",
-  "types": "pitstop-server-cli.d.ts",
+  "main": "dist/pitstop-server-cli.js",
+  "types": "dist/pitstop-server-cli.d.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
