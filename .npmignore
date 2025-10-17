@@ -4,4 +4,3 @@ output/
 *test*
 *.json
 .vscode/
-pitstop-server-cli.ts

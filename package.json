@@ -1,6 +1,6 @@
 {
   "name": "@3motion-be/pitstop-server-cli",
-  "version": "2.0.2",
+  "version": "2.0.3",
   "description": "Make working with the PitStop Server CLI easier",
   "main": "dist/pitstop-server-cli.js",
   "types": "dist/pitstop-server-cli.d.ts",
