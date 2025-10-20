@@ -759,31 +759,34 @@ class PitStopServer {
         this.debugMessages.push("Creating a basic configuration file");
         let xmlString = `<?xml version="1.0" encoding="utf-8"?>
         <cf:Configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:cf="http://www.enfocus.com/PitStop/24/PitStopServerCLI_Configuration.xsd">
-        <cf:Versioning>
-        <cf:Version>11</cf:Version>
-        <cf:VersioningStrategy>MustHonor</cf:VersioningStrategy>
-        </cf:Versioning>
-        <cf:Initialize>
-        <cf:ProcessingMethod>EnforceServer</cf:ProcessingMethod>
-        <cf:ShutDownServerAtExit>false</cf:ShutDownServerAtExit>
-        </cf:Initialize>
-        <cf:TaskReport>
-        <cf:LogProcessResults>true</cf:LogProcessResults>
-        <cf:LogErrors>true</cf:LogErrors>
-        </cf:TaskReport>
+          <cf:Versioning>
+            <cf:Version>11</cf:Version>
+            <cf:VersioningStrategy>MustHonor</cf:VersioningStrategy>
+          </cf:Versioning>
+          <cf:Initialize>
+            <cf:ProcessingMethod>EnforceServer</cf:ProcessingMethod>
+            <cf:ShutDownServerAtExit>false</cf:ShutDownServerAtExit>
+          </cf:Initialize>
+          <cf:TaskReport>
+            <cf:LogProcessResults>true</cf:LogProcessResults>
+            <cf:LogErrors>true</cf:LogErrors>
+          </cf:TaskReport>
         <cf:Process>
-        <cf:InputPDF>
-        <cf:InputPath></cf:InputPath>
-        </cf:InputPDF>
-        <cf:OutputPDF>
-        <cf:OutputPath></cf:OutputPath>
-        </cf:OutputPDF>
-        <cf:Mutators>
-        </cf:Mutators>
-        <cf:Reports>
-        </cf:Reports>
-        <cf:MeasurementUnit></cf:MeasurementUnit>
-        <cf:Language></cf:Language>
+          <cf:InputPDF>
+            <cf:InputPath></cf:InputPath>
+          </cf:InputPDF>
+          <cf:OutputPDF>
+            <cf:OutputPath></cf:OutputPath>
+          </cf:OutputPDF>
+          <cf:Mutators>
+          </cf:Mutators>
+          <cf:Reports>
+          </cf:Reports>
+          <cf:MeasurementUnit></cf:MeasurementUnit>
+          <cf:Language></cf:Language>
+          <cf:CertifiedPDF>
+            <cf:CertifiedPDFAction>MakeUncertified</cf:CertifiedPDFAction>
+          </cf:CertifiedPDF>
         </cf:Process>
         </cf:Configuration>`;
         try {
