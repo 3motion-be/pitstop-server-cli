@@ -236,6 +236,7 @@ export class PitStopServer {
         fs.copyFileSync(this.configFile, this.finalConfigFilePath);
       }
     }
+    
   }
 
   //////////////////////////////////////////////////////////////////////////
@@ -484,6 +485,17 @@ export class PitStopServer {
     } catch (error) {
       throw error;
     }
+  };
+
+  public getTaskConfig = () => {
+    if (this.finalConfigFilePath == undefined) {
+      throw new Error("There is no configuration file defined");
+    }
+    if (fs.existsSync(this.finalConfigFilePath) == false) {
+      throw new Error("The configuration file " + this.finalConfigFilePath + " does not exist anymore");
+    }
+    const taskConfigString = fs.readFileSync(this.finalConfigFilePath).toString();
+    return taskConfigString;
   };
 
   //////////////////////////////////////////////////////////////////////////

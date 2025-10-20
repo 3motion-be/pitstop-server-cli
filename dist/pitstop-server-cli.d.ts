@@ -106,6 +106,7 @@ export declare class PitStopServer {
      * Removes the output folder and all the contents
      */
     cleanup: () => void;
+    getTaskConfig: () => string;
     /**
      * Updates the config file with all settings just before running PitStop Server
      */

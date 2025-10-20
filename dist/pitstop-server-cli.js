@@ -467,6 +467,16 @@ class PitStopServer {
             throw error;
         }
     };
+    getTaskConfig = () => {
+        if (this.finalConfigFilePath == undefined) {
+            throw new Error("There is no configuration file defined");
+        }
+        if (fs.existsSync(this.finalConfigFilePath) == false) {
+            throw new Error("The configuration file " + this.finalConfigFilePath + " does not exist anymore");
+        }
+        const taskConfigString = fs.readFileSync(this.finalConfigFilePath).toString();
+        return taskConfigString;
+    };
     //////////////////////////////////////////////////////////////////////////
     //
     // PitStopServer private API methods
@@ -758,10 +768,8 @@ class PitStopServer {
         <cf:ShutDownServerAtExit>false</cf:ShutDownServerAtExit>
         </cf:Initialize>
         <cf:TaskReport>
-        <cf:LogCommandLine>true</cf:LogCommandLine>
         <cf:LogProcessResults>true</cf:LogProcessResults>
         <cf:LogErrors>true</cf:LogErrors>
-        <cf:LogSupportInfo>true</cf:LogSupportInfo>
         </cf:TaskReport>
         <cf:Process>
         <cf:InputPDF>
